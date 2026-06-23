@@ -120,7 +120,7 @@ function SignUp() {
               </div>
 
               <div>
-                <Link className="text-red-500" to="/">Already have an account ?</Link>
+                <Link to="/" className="text-red-500" >Already have an account ?</Link>
               </div>
             </div>
           </div>
