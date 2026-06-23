@@ -31,6 +31,32 @@ function Employees() {
     if (!empData.empEmail) {
       empErrors.empEmail = "Email is required.";
     }
+    if(!empData.empID){
+      empErrors.empID = "Employee ID is required.";
+    }
+    if(!empData.empName){
+      empErrors.empName = "Employee Name is required.";
+    }
+    if(!empData.empPhone){
+      empErrors.empPhone = "Employee Phone Number is required.";
+    }else if(empPhone.length!=10){
+      empErrors.empPhone = "Employee Phone Number must be of 10 numbers.";
+    }
+    if(!empData.empDob){
+      empErrors.empDob = "Employee Date of Birth is mandatory.";
+    }
+    if(!empData.empDesig){
+      empErrors.empDesig = "Employee Designation is required.";
+    }
+    if(!empData.empSalary){
+      empErrors.empSalary = "Please fill your current salary.";
+    }
+    if(!empData.empJoiningDate){
+      empErrors.empJoiningDate = "Employee Joining date is required.";
+    }
+    if(!empData.empDept){
+      empErrors.empDept = "Employee Department is required.";
+    }
     setError(empErrors);
   };
 
@@ -140,6 +166,20 @@ function Employees() {
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
+                        Employee Salary
+                      </label>
+                    </div>
+                    <div className="mb-2">
+                      <input
+                        type="number"
+                        placeholder=" Enter your Salary."
+                        className="w-full h-8 border-2 border-black rounded-md mt-2 "
+                        name="empSalary"
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-black ">
                         Employee Joining Date.
                       </label>
                     </div>
@@ -191,6 +231,7 @@ function Employees() {
                   <th class="border border-gray-300 ...">Emp Phone-number</th>
                   <th class="border border-gray-300 ...">Emp DOB</th>
                   <th class="border border-gray-300 ...">Emp Designation</th>
+                  <th class="border border-gray-300 ...">Emp Salary</th>
                   <th class="border border-gray-300 ...">Emp Joining Date</th>
                   <th class="border border-gray-300 ...">Emp Department</th>
                 </tr>
@@ -203,6 +244,7 @@ function Employees() {
                   <td class="border border-gray-300 ...">{empData.empPhone}</td>
                   <td class="border border-gray-300 ...">{empData.empDob}</td>
                   <td class="border border-gray-300 ...">{empData.empDesig}</td>
+                  <td class="border border-gray-300 ...">{empData.empSalary}</td>
                   <td class="border border-gray-300 ...">{empData.empJoiningDate}</td>
                   <td class="border border-gray-300 ...">{empData.empDept}</td>
                 </tr>
