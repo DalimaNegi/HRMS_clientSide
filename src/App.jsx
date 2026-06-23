@@ -19,6 +19,7 @@ function App() {
       <BrowserRouter>
       <Routes>
         <Route path='/' element={<Login/>}/>
+        <Route path='/login' element={<Login/>}/>
         <Route path='/signup' element={<SignUp/>}/>
         <Route path = '/panel' element={<Panel/>}>
         {/* Nested Routing -> it has already a slash defined*/}
