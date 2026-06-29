@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function SignUp() {
-  let [signupData, setSignupData] = useState({});
+  let navigate = useNavigate();
+  let [signupData, setSignupData] = useState({}); //to dynamically update the data
   let [error, setError] = useState({});
 
   let handleChange = (e) => {
@@ -10,23 +12,40 @@ function SignUp() {
     setSignupData({ ...signupData, [name]: value });
   };
 
-  let signupForm = {};
-
-  let validateData = (signupData) =>{
-    if(!signupForm.name){
+  let validateData = (signupData) => {
+    let signupForm = {};
+    if (!signupData.name) {
       signupForm.name = "Name is required.";
     }
-    if(!signupForm.email){
+    if (!signupData.email) {
       signupForm.email = "Email is required.";
     }
-    if(!signupForm.phone){
-      signupForm.phone = "Phone number is required.";
-    }
-    if(!signupForm.password){
+    // if(!signupForm.phone){
+    //   signupForm.phone = "Phone number is required.";
+    // }
+    if (!signupData.password) {
       signupForm.password = "Password is mandatory.";
     }
-    if(!signupForm.confirmPassword){
+    if (!signupData.confirmPassword) {
       signupForm.confirmPassword = "Please confirm your password.";
+    }
+    if (Object.keys(signupForm).length === 0) {
+      axios
+        .post("http://localhost:5000/api/signup", signupData)
+        .then((res) => {
+          let { success, message, token } = res.data;
+          if (success) {
+            alert(message);
+            navigate("/login");
+          }
+        })
+        .catch((err) => {
+          let { success, message } = err.response.data;
+          if (success === false) {
+            alert(message);
+          }
+        });
+      // navigate("/login");
     }
 
     setError(signupForm);
@@ -59,7 +78,7 @@ function SignUp() {
                   placeholder=" Enter your name"
                   onChange={handleChange}
                 />
-                {error && (<p className="text-red-500 mt-1">{error.name}</p>)}
+                {error && <p className="text-red-500 mt-1">{error.name}</p>}
               </div>
 
               <div className="mb-4">
@@ -72,10 +91,10 @@ function SignUp() {
                   placeholder=" Enter your email"
                   onChange={handleChange}
                 />
-                {error && <p className="text-red-500 mt-1" >{error.email}</p>}
+                {error && <p className="text-red-500 mt-1">{error.email}</p>}
               </div>
 
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="font-semibold">Phone Number</label>
                 <input
                   className="w-full h-8 border-2 border-blue-400 rounded-md shadow-md px-2"
@@ -86,7 +105,7 @@ function SignUp() {
                   onChange={handleChange}
                 />
                 {error && <p className="text-red-500 mt-1" >{error.phone}</p>}
-              </div>
+              </div> */}
 
               <div className="mb-4">
                 <label className="font-semibold">Password</label>
@@ -98,7 +117,7 @@ function SignUp() {
                   placeholder=" Enter Password"
                   onChange={handleChange}
                 />
-                {error && <p className="text-red-500 mt-1" >{error.password}</p>}
+                {error && <p className="text-red-500 mt-1">{error.password}</p>}
               </div>
 
               <div className="mb-4">
@@ -110,17 +129,24 @@ function SignUp() {
                   placeholder=" Enter Confirm Password"
                   onChange={handleChange}
                 />
-                {error && <p className="text-red-500 mt-1" >{error.confirmPassword}</p>}
+                {error && (
+                  <p className="text-red-500 mt-1">{error.confirmPassword}</p>
+                )}
               </div>
 
               <div className="mb-4">
-                <button className="w-full text-white h-8 rounded-md bg-sky-500 hover:bg-sky-700" onClick={handleClick}>
+                <button
+                  className="w-full text-white h-8 rounded-md bg-sky-500 hover:bg-sky-700"
+                  onClick={handleClick}
+                >
                   Sign Up
                 </button>
               </div>
 
               <div>
-                <Link to="/" className="text-red-500" >Already have an account ?</Link>
+                <Link to="/" className="text-red-500">
+                  Already have an account ?
+                </Link>
               </div>
             </div>
           </div>

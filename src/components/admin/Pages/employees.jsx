@@ -54,6 +54,8 @@ function Employees() {
     }
     if (!empData.empSalary) {
       empErrors.empSalary = "Please fill your current salary.";
+    }else if (empSalary > 5000) {
+      empErrors.empSalary = "Invalid Salary";
     }
     if (!empData.empJoiningDate) {
       empErrors.empJoiningDate = "Employee Joining date is required.";
