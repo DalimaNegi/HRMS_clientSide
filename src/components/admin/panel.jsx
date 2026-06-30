@@ -50,7 +50,7 @@ function Panel() {
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-2 shadow-sm">
             <span className="text-sm font-medium">Admin</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-600 text-white">
-              <img src="" alt="" className="rounded-2xl" />
+              <img src="null" alt="" className="rounded-2xl" />
             </div>
           </div>
         </div>

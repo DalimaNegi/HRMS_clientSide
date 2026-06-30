@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 function Login() {
   let navigate = useNavigate();
 
@@ -12,26 +14,46 @@ function Login() {
     setLoginData({ ...loginData, [name]: value }); //value is in object format -> to add existing value.
   };
 
-  let formError = {};
-
   let handleValidate = (loginData) => {
+    let formError = {};
+
     if (!loginData.email) {
       formError.email = "Email is required.";
     }
 
     if (!loginData.password) {
-      formError.password = "Password is required.";   
-    }else if (loginData.password.length < 8) {                       //The else if ensures that .length is checked only after confirming that the field is not empty.
-      formError.password = "Minimum 8 characters required.";
-    }
+      formError.password = "Password is required.";
+    } 
+    // else if (loginData.password.length < 8) {
+    //   //The else if ensures that .length is checked only after confirming that the field is not empty.
+    //   formError.password = "Minimum 8 characters required.";
+    // }
 
     if (!loginData.conPassword) {
       formError.conPassword =
         "Confirmation of Password is required. It cannot be empty.";
-    } else if (loginData.conPassword.length < 8) {
-      formError.conPassword = "Minimum 8 characters required.";
-    } else {
-       navigate("/panel");
+    } 
+    // else if (loginData.conPassword.length < 8) {
+    //   formError.conPassword = "Minimum 8 characters required.";
+    // }
+
+    if (Object.keys(formError).length === 0) {
+      axios                                                    //promise-based http client
+        .post("http://localhost:5000/api/login", loginData)
+        .then((res) => {
+          let { success, message, token } = res.data;
+          if (success) {
+            alert(message);
+            localStorage.getItem("auth_token", token);
+            navigate("/panel");
+          }
+        })
+        .catch((err) => {
+          let { success, message, token } = err.response.data;
+          if (success === false) {
+            alert(message);
+          }
+        });
     }
 
     setError(formError);
@@ -65,7 +87,7 @@ function Login() {
                   onChange={handleChange}
                   name="email"
                 />
-                {error && <p className="text-red-500 mt-1" >{error.email}</p>}
+                {error && <p className="text-red-500 mt-1">{error.email}</p>}
               </div>
 
               <div className="mb-4">
@@ -78,7 +100,7 @@ function Login() {
                   onChange={handleChange}
                   name="password"
                 />
-                {error && <p className="text-red-500 mt-1" >{error.password}</p>}
+                {error && <p className="text-red-500 mt-1">{error.password}</p>}
               </div>
 
               <div className="mb-4">
@@ -90,13 +112,16 @@ function Login() {
                   onChange={handleChange}
                   name="conPassword"
                 />
-                {error && <p className="text-red-500 mt-1" >{error.conPassword}</p>}
+                {error && (
+                  <p className="text-red-500 mt-1">{error.conPassword}</p>
+                )}
               </div>
 
               <div className="mb-4">
                 <button
                   className="w-full text-white h-8 rounded-xl bg-sky-500 hover:bg-sky-700"
-                  onClick={handleClick}>
+                  onClick={handleClick}
+                >
                   Login
                 </button>
               </div>

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardAction,
@@ -17,66 +17,118 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import axios from "axios";
+
 function Employees() {
   let [empData, setEmpData] = useState({});
   let [error, setError] = useState({});
   let [openModal, setOpenModal] = useState(false);
   let [openEditModal, setOpenEditModal] = useState(false);
-  let [empFormData, setEmpFormData] = useState({});
+  let [empFormData, setEmpFormData] = useState([{}]);
 
   let handleChange = (e) => {
     let { name, value } = e.target;
     setEmpData({ ...empData, [name]: value });
   };
 
-  let empErrors = {};
-
   let handleValidate = (empData) => {
-    if (!empData.empEmail) {
-      empErrors.empEmail = "Email is required.";
+    let empErrors = {};
+
+    if (!empData.email) {
+      empErrors.email = "Email is required.";
     }
-    if (!empData.empID) {
-      empErrors.empID = "Employee ID is required.";
+    if (!empData.ID) {
+      empErrors.ID = "Employee ID is required.";
     }
-    if (!empData.empName) {
-      empErrors.empName = "Employee Name is required.";
+    if (!empData.name) {
+      empErrors.name = "Employee Name is required.";
     }
-    if (!empData.empPhone) {
-      empErrors.empPhone = "Employee Phone Number is required.";
-    } else if (empPhone.length != 10) {
-      empErrors.empPhone = "Employee Phone Number must be of 10 numbers.";
+    if (!empData.phone) {
+      empErrors.phone = "Employee Phone Number is required.";
+    } else if (empData.phone.length != 10) {
+      empErrors.phone = "Employee Phone Number must be of 10 numbers.";
     }
-    if (!empData.empDob) {
-      empErrors.empDob = "Employee Date of Birth is mandatory.";
+    if (!empData.DOB) {
+      empErrors.DOB = "Employee Date of Birth is mandatory.";
     }
-    if (!empData.empDesig) {
-      empErrors.empDesig = "Employee Designation is required.";
+    // if (!empData.empDesig) {
+    //   empErrors.empDesig = "Employee Designation is required.";
+    // }
+    if (!empData.salary) {
+      empErrors.salary = "Please fill your current salary.";
+    } else if (empData.salary < 5000) {
+      empErrors.salary = "Invalid Salary";
     }
-    if (!empData.empSalary) {
-      empErrors.empSalary = "Please fill your current salary.";
-    }else if (empSalary > 5000) {
-      empErrors.empSalary = "Invalid Salary";
+    // if (!empData.empJoiningDate) {
+    //   empErrors.empJoiningDate = "Employee Joining date is required.";
+    // }
+    if (!empData.address) {
+      empErrors.address = "Employee Address is required.";
     }
-    if (!empData.empJoiningDate) {
-      empErrors.empJoiningDate = "Employee Joining date is required.";
-    }
-    if (!empData.empDept) {
-      empErrors.empDept = "Employee Department is required.";
-    }
+
     setError(empErrors);
+    return Object.keys(empErrors).length;
   };
 
-  console.log(empData);
+  let handleSubmit = () => {
+    let validate = handleValidate(empData);
 
-  let handleSubmit = () =>{
-    setEmpFormData(empData);
-    setOpenModal(false);
+    if (validate === 0) {
+      axios
+        .post("http://localhost:5000/api/post/employee", empData)
+        .then((res) => {
+          let { success, message } = res.data;
+
+          if (success) {
+            alert(message);
+            setEmpFormData(empData);
+            setOpenModal(false);
+
+            setEmpData({});
+            setError({});
+          }
+        })
+        .catch((err) => {
+          let { message } = err.response.data;
+          alert(message);
+        });
+    }
   };
 
-  let handleEditSubmit = () =>{
+  let handleEditSubmit = () => {
     setEmpFormData(empData);
+    // if (Object.keys(empErrors).length === 0) {
+    //   axios
+    //     .post("http://localhost:5000/api/update/byID/:id", empData)
+    //     .then((res) => {
+    //       let { success, message } = res.data;
+    //       if (success) {
+    //         alert(message);
+    //       }
+    //     })
+    //     .catch((err) => {
+    //       let { success, message } = err.response.data;
+    //       if (success === false) {
+    //         alert(message);
+    //       }
+    //     });
+    // }
     setOpenEditModal(false);
   };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/get/employee")
+      .then((res) => {
+        //backend response data -> res
+        let { success, message, data } = res.data;
+        setEmpFormData(data);
+      })
+      .catch((err) => {
+        console.log(err.response.data);
+      });
+  }, []);
+
 
   return (
     //Html fragment
@@ -108,9 +160,10 @@ function Employees() {
                         type="text"
                         placeholder=" Enter your Employee ID"
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empID"
+                        name="ID"
                         onChange={handleChange}
                       />
+                      {error && <p className="text-red-500 mt-1">{error.ID}</p>}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
@@ -122,9 +175,12 @@ function Employees() {
                         type="text"
                         placeholder=" Enter your Name"
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empName"
+                        name="name"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.name}</p>
+                      )}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
@@ -136,9 +192,12 @@ function Employees() {
                         type="text"
                         placeholder=" Enter your email."
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empEmail"
+                        name="email"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.email}</p>
+                      )}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
@@ -150,9 +209,12 @@ function Employees() {
                         type="text"
                         placeholder=" Enter your phone number."
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empPhone"
+                        name="phone"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.phone}</p>
+                      )}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
@@ -164,23 +226,29 @@ function Employees() {
                         type="date"
                         placeholder=" Enter your DOB"
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empDob"
+                        name="DOB"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.DOB}</p>
+                      )}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
-                        Employee Designation
+                        Employee Address
                       </label>
                     </div>
                     <div className="mb-2">
                       <input
                         type="text"
-                        placeholder=" Enter Employee designation"
+                        placeholder=" Enter Employee address"
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empDesig"
+                        name="address"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.address}</p>
+                      )}
                     </div>
                     <div>
                       <label className="font-semibold text-black ">
@@ -192,11 +260,14 @@ function Employees() {
                         type="number"
                         placeholder=" Enter your Salary."
                         className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empSalary"
+                        name="salary"
                         onChange={handleChange}
                       />
+                      {error && (
+                        <p className="text-red-500 mt-1">{error.salary}</p>
+                      )}
                     </div>
-                    <div>
+                    {/* <div>
                       <label className="font-semibold text-black ">
                         Employee Joining Date.
                       </label>
@@ -209,8 +280,8 @@ function Employees() {
                         name="empJoiningDate"
                         onChange={handleChange}
                       />
-                    </div>
-                    <div>
+                    </div> */}
+                    {/* <div>
                       <label className="font-semibold text-black ">
                         Employee Department
                       </label>
@@ -223,17 +294,21 @@ function Employees() {
                         name="empDept"
                         onChange={handleChange}
                       />
-                    </div>
+                    </div> */}
                     <div className="flex justify-end gap-3 mt-5">
                       <button
                         className="px-5 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
                         onClick={() => {
                           setOpenModal(false);
+                          setError({});
                         }}
                       >
                         Close
                       </button>
-                      <button className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors" onClick={handleSubmit}>
+                      <button
+                        className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+                        onClick={handleSubmit}
+                      >
                         Add
                       </button>
                     </div>
@@ -254,42 +329,60 @@ function Employees() {
                   <th class="border border-gray-300 ...">Emp Email</th>
                   <th class="border border-gray-300 ...">Emp Phone-number</th>
                   <th class="border border-gray-300 ...">Emp DOB</th>
-                  <th class="border border-gray-300 ...">Emp Designation</th>
+                  <th class="border border-gray-300 ...">Emp Address</th>
                   <th class="border border-gray-300 ...">Emp Salary</th>
-                  <th class="border border-gray-300 ...">Emp Joining Date</th>
-                  <th class="border border-gray-300 ...">Emp Department</th>
+                  {/* <th class="border border-gray-300 ...">Emp Joining Date</th> */}
+                  {/* <th class="border border-gray-300 ...">Emp Department</th> */}
                   <th class="border border-gray-300 ...">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td class="border border-gray-300 ...">{empFormData.empID}</td>
-                  <td class="border border-gray-300 ...">{empFormData.empName}</td>
-                  <td class="border border-gray-300 ...">{empFormData.empEmail}</td>
-                  <td class="border border-gray-300 ...">{empFormData.empPhone}</td>
-                  <td class="border border-gray-300 ...">{empFormData.empDob}</td>
-                  <td class="border border-gray-300 ...">{empFormData.empDesig}</td>
-                  <td class="border border-gray-300 ...">
-                    {empFormData.empSalary}
-                  </td>
-                  <td class="border border-gray-300 ...">
+              <tbody>   
+                {/* //map function used to generate a row every time data is inserted. */}
+                {empFormData.map((item) => {
+                  return(
+                  <>
+                    <tr>
+                      <td class="border border-gray-300 ...">
+                        {item.ID}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.name}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.email}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.phone}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.DOB}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.address}
+                      </td>
+                      <td class="border border-gray-300 ...">
+                        {item.salary}
+                      </td>
+                      {/* <td class="border border-gray-300 ...">
                     {empFormData.empJoiningDate}
-                  </td>
-                  <td class="border border-gray-300 ...">{empFormData.empDept}</td>
-                  <td class="border border-gray-300 ...">
-                    <button>
-                      <Dialog
-                        open={openEditModal}
-                        onOpenChange={() => setOpenEditModal(true)}
-                      >
-                        <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
-                          Edit
-                        </DialogTrigger>
-                      </Dialog>
-                    </button>
-                    <button>Delete</button>
-                  </td>
-                </tr>
+                  </td> */}
+                      {/* <td class="border border-gray-300 ...">{empFormData.empDept}</td> */}
+                      <td class="border border-gray-300 ...">
+                        <button>
+                          <Dialog
+                            open={openEditModal}
+                            onOpenChange={() => setOpenEditModal(true)}
+                          >
+                            <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
+                              Edit
+                            </DialogTrigger>
+                          </Dialog>
+                        </button>
+                        <button>Delete</button>
+                      </td>
+                    </tr>
+                  </>);
+                })}
               </tbody>
             </table>
           </p>
@@ -298,167 +391,168 @@ function Employees() {
           <p>Card Footer</p>
         </CardFooter>
       </Card>
-      
+
       {/* Edit Employee Record Modal */}
       <Dialog open={openEditModal}>
-              <DialogContent className="p-6 h-150 scroll-smooth overflow-auto scrollbar-gutter-auto scrollbar-thumb-sky-200 scrollbar-track-sky-100" >
-                <DialogHeader>
-                  <DialogTitle className="mb-4">
-                    Want to change details ? Do it here☕
-                  </DialogTitle>
-                  <DialogDescription>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee ID
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter your Employee ID"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empID"
-                        defaultValue={empFormData.empID}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Name
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter your Name"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empName"
-                        defaultValue={empFormData.empName}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Email
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter your email."
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empEmail"
-                        defaultValue={empFormData.empEmail}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Phone number
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter your phone number."
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empPhone"
-                        defaultValue={empFormData.empPhone}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Date of Birth
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="date"
-                        placeholder=" Enter your DOB"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empDob"
-                        defaultValue={empFormData.empDob}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Designation
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter Employee designation"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empDesig"
-                        defaultValue={empFormData.empDesig}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Salary
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="number"
-                        placeholder=" Enter your Salary."
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empSalary"
-                        defaultValue={empFormData.empSalary}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Joining Date.
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="date"
-                        placeholder=" Enter Employee Joining Date"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empJoiningDate"
-                        defaultValue={empFormData.empJoiningDate}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-black ">
-                        Employee Department
-                      </label>
-                    </div>
-                    <div className="mb-2">
-                      <input
-                        type="text"
-                        placeholder=" Enter department"
-                        className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                        name="empDept"
-                        defaultValue={empFormData.empDept}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-5">
-                      <button
-                        className="px-5 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
-                        onClick={() => {
-                          setOpenEditModal(false);
-                        }}
-                      >
-                        Close
-                      </button>
-                      <button className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors" onClick={handleEditSubmit}>
-                        Update
-                      </button>
-                    </div>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+        <DialogContent className="p-6 h-150 scroll-smooth overflow-auto scrollbar-gutter-auto scrollbar-thumb-sky-200 scrollbar-track-sky-100">
+          <DialogHeader>
+            <DialogTitle className="mb-4">
+              Want to change details ? Do it here☕
+            </DialogTitle>
+            <DialogDescription>
+              <div>
+                <label className="font-semibold text-black ">Employee ID</label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter your Employee ID"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empID"
+                  defaultValue={empFormData.ID}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Name
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter your Name"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empName"
+                  defaultValue={empFormData.name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Email
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter your email."
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empEmail"
+                  defaultValue={empFormData.email}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Phone number
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter your phone number."
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empPhone"
+                  defaultValue={empFormData.phone}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Date of Birth
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="date"
+                  placeholder=" Enter your DOB"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empDob"
+                  defaultValue={empFormData.DOB}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Address
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter Employee designation"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empDesig"
+                  defaultValue={empFormData.address}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Salary
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="number"
+                  placeholder=" Enter your Salary."
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empSalary"
+                  defaultValue={empFormData.salary}
+                  onChange={handleChange}
+                />
+              </div>
+              {/* <div>
+                <label className="font-semibold text-black ">
+                  Employee Joining Date.
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="date"
+                  placeholder=" Enter Employee Joining Date"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empJoiningDate"
+                  defaultValue={empFormData.empJoiningDate}
+                  onChange={handleChange}
+                />
+              </div> */}
+              {/* <div>
+                <label className="font-semibold text-black ">
+                  Employee Department
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  placeholder=" Enter department"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
+                  name="empDept"
+                  defaultValue={empFormData.empDept}
+                  onChange={handleChange}
+                />
+              </div> */}
+              <div className="flex justify-end gap-3 mt-5">
+                <button
+                  className="px-5 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
+                  onClick={() => {
+                    setOpenEditModal(false);
+                  }}
+                >
+                  Close
+                </button>
+                <button
+                  className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+                  onClick={handleEditSubmit}
+                >
+                  Update
+                </button>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

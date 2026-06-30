@@ -36,7 +36,8 @@ function SignUp() {
           let { success, message, token } = res.data;
           if (success) {
             alert(message);
-            navigate("/login");
+            localStorage.setItem("auth_token",token);
+            navigate("/");
           }
         })
         .catch((err) => {
