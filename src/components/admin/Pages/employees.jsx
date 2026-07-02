@@ -19,6 +19,8 @@ import {
 
 import axios from "axios";
 
+let baseURL = import.meta.env.VITE_BASE_URL;
+
 function Employees() {
   let [empData, setEmpData] = useState({});
   let [error, setError] = useState({});
@@ -29,6 +31,8 @@ function Employees() {
   let [filterData, setFilterData] = useState([{}]);
 
   let [editData, setEditData] = useState({});
+
+  //let [isDelete, setIsDelete]
 
   let handleChange = (e) => {
     let { name, value } = e.target;
@@ -79,13 +83,12 @@ function Employees() {
 
     if (validate === 0) {
       axios
-        .post("http://localhost:5000/api/post/employee", empData)
+        .post(`${baseURL}/post/employee`, empData)
         .then((res) => {
           let { success, message } = res.data;
 
           if (success) {
             alert(message);
-            setEmpFormData(empData);
             setOpenModal(false);
 
             setEmpData({});
@@ -106,27 +109,27 @@ function Employees() {
 
   let handleEditClick = (_id) => {
     let id = editData._id;
-    axios.put(`http://localhost:5000/api/update/byID/${id}`, editData)
-    .then((res)=>{
-      let {success,message} = res.data;
-      if(success){
-        alert(message);
-      }
-    })
-    .catch((err)=>{
-      let {success, message} = err.response.data;
-      if(success === false){
-        alert(message);
-      }
-    })
+    axios
+      .put(`${baseURL}/update/byID/${id}`, editData)
+      .then((res) => {
+        let { success, message } = res.data;
+        if (success) {
+          alert(message);
+          setOpenEditModal(false);
+          loadEmployee();
+        }
+      })
+      .catch((err) => {
+        let { success, message } = err.response.data;
+        if (success === false) {
+          alert(message);
+        }
+      });
   };
 
-  console.log("Filter data" ,filterData);
-  
-
-  useEffect(() => {
+  const loadEmployee = () => {
     axios
-      .get("http://localhost:5000/api/get/employee")
+      .get(`${baseURL}/get/employee`)
       .then((res) => {
         //backend response data -> res
         let { success, message, data } = res.data;
@@ -135,11 +138,33 @@ function Employees() {
       .catch((err) => {
         console.log(err.response.data);
       });
-  }, []);
+  };
 
-  let handleEditChange = (e) =>{
-    let {name,value} = e.target;
-    setEditData({...filterData[0], [name]:value});
+  console.log("Filter data", filterData);
+
+  useEffect(() => {
+    loadEmployee();
+  }, [empData]);
+
+  let handleEditChange = (e) => {
+    let { name, value } = e.target;
+    setEditData({ ...filterData[0], [name]: value });
+  };
+
+  let handleDelete = (_id) => {
+    axios
+      .delete(`${baseURL}/delete/byID/${_id}`)
+      .then((res) => {
+        let { success, message } = res.data;
+        if (success) {
+          alert(message);
+          loadEmployee();
+        }
+      })
+      .catch((err) => {
+        alert(message);
+        console.log(err.response.data);
+      });
   };
 
   return (
@@ -375,15 +400,24 @@ function Employees() {
                               open={openEditModal}
                               onOpenChange={() => {
                                 setOpenEditModal(true);
-                                setFilterData(empFormData.filter((data)=>data._id === item._id));
+                                setFilterData(
+                                  empFormData.filter(
+                                    (data) => data._id === item._id,
+                                  ),
+                                );
                               }}
                             >
-                              <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
+                              <DialogTrigger className="border-1 border-blue-600 rounded-md p-2 bg-blue-200">
                                 Edit
                               </DialogTrigger>
                             </Dialog>
                           </button>
-                          <button>Delete</button>
+                          <button
+                            className="border-1 border-red-600 rounded-md p-2 bg-red-200"
+                            onClick={() => handleDelete(item._id)}
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     </>

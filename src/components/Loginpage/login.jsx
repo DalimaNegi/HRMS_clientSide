@@ -3,11 +3,15 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+let baseURL = import.meta.env.VITE_BASE_URL;
+
+
 function Login() {
   let navigate = useNavigate();
 
   let [loginData, setLoginData] = useState({});
   let [error, setError] = useState({});
+
 
   let handleChange = (e) => {
     let { name, value } = e.target; //we are destructuring name and value which are in target.
@@ -38,12 +42,13 @@ function Login() {
 
     if (Object.keys(formError).length === 0) {
       axios                                                    //promise-based http client
-        .post("http://localhost:5000/api/login", loginData)
+        .post(`${baseURL}/login`, loginData)
         .then((res) => {
           let { success, message, token } = res.data;
+          console.log(res.data)
           if (success) {
             alert(message);
-            localStorage.getItem("auth_token", token);
+            localStorage.setItem("auth_token", token);
             navigate("/panel");
           }
         })
