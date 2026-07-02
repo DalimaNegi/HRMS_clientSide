@@ -37,7 +37,7 @@ function SignUp() {
           if (success) {
             alert(message);
             localStorage.setItem("auth_token",token);
-            navigate("/");
+            navigate("/panel");
           }
         })
         .catch((err) => {

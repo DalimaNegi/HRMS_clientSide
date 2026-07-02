@@ -26,6 +26,10 @@ function Employees() {
   let [openEditModal, setOpenEditModal] = useState(false);
   let [empFormData, setEmpFormData] = useState([{}]);
 
+  let [filterData, setFilterData] = useState([{}]);
+
+  let [editData, setEditData] = useState({});
+
   let handleChange = (e) => {
     let { name, value } = e.target;
     setEmpData({ ...empData, [name]: value });
@@ -95,26 +99,30 @@ function Employees() {
     }
   };
 
-  let handleEditSubmit = () => {
-    setEmpFormData(empData);
-    // if (Object.keys(empErrors).length === 0) {
-    //   axios
-    //     .post("http://localhost:5000/api/update/byID/:id", empData)
-    //     .then((res) => {
-    //       let { success, message } = res.data;
-    //       if (success) {
-    //         alert(message);
-    //       }
-    //     })
-    //     .catch((err) => {
-    //       let { success, message } = err.response.data;
-    //       if (success === false) {
-    //         alert(message);
-    //       }
-    //     });
-    // }
-    setOpenEditModal(false);
+  // let handleEditSubmit = () => {
+  //   setEmpFormData(empData);
+  //   setOpenEditModal(false);
+  // };
+
+  let handleEditClick = (_id) => {
+    let id = editData._id;
+    axios.put(`http://localhost:5000/api/update/byID/${id}`, editData)
+    .then((res)=>{
+      let {success,message} = res.data;
+      if(success){
+        alert(message);
+      }
+    })
+    .catch((err)=>{
+      let {success, message} = err.response.data;
+      if(success === false){
+        alert(message);
+      }
+    })
   };
+
+  console.log("Filter data" ,filterData);
+  
 
   useEffect(() => {
     axios
@@ -129,6 +137,10 @@ function Employees() {
       });
   }, []);
 
+  let handleEditChange = (e) =>{
+    let {name,value} = e.target;
+    setEditData({...filterData[0], [name]:value});
+  };
 
   return (
     //Html fragment
@@ -336,52 +348,46 @@ function Employees() {
                   <th class="border border-gray-300 ...">Action</th>
                 </tr>
               </thead>
-              <tbody>   
+              <tbody>
                 {/* //map function used to generate a row every time data is inserted. */}
                 {empFormData.map((item) => {
-                  return(
-                  <>
-                    <tr>
-                      <td class="border border-gray-300 ...">
-                        {item.ID}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.name}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.email}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.phone}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.DOB}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.address}
-                      </td>
-                      <td class="border border-gray-300 ...">
-                        {item.salary}
-                      </td>
-                      {/* <td class="border border-gray-300 ...">
+                  return (
+                    <>
+                      <tr>
+                        <td class="border border-gray-300 ...">{item.ID}</td>
+                        <td class="border border-gray-300 ...">{item.name}</td>
+                        <td class="border border-gray-300 ...">{item.email}</td>
+                        <td class="border border-gray-300 ...">{item.phone}</td>
+                        <td class="border border-gray-300 ...">{item.DOB}</td>
+                        <td class="border border-gray-300 ...">
+                          {item.address}
+                        </td>
+                        <td class="border border-gray-300 ...">
+                          {item.salary}
+                        </td>
+                        {/* <td class="border border-gray-300 ...">
                     {empFormData.empJoiningDate}
                   </td> */}
-                      {/* <td class="border border-gray-300 ...">{empFormData.empDept}</td> */}
-                      <td class="border border-gray-300 ...">
-                        <button>
-                          <Dialog
-                            open={openEditModal}
-                            onOpenChange={() => setOpenEditModal(true)}
-                          >
-                            <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
-                              Edit
-                            </DialogTrigger>
-                          </Dialog>
-                        </button>
-                        <button>Delete</button>
-                      </td>
-                    </tr>
-                  </>);
+                        {/* <td class="border border-gray-300 ...">{empFormData.empDept}</td> */}
+                        <td class="border border-gray-300 ...">
+                          <button>
+                            <Dialog
+                              open={openEditModal}
+                              onOpenChange={() => {
+                                setOpenEditModal(true);
+                                setFilterData(empFormData.filter((data)=>data._id === item._id));
+                              }}
+                            >
+                              <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
+                                Edit
+                              </DialogTrigger>
+                            </Dialog>
+                          </button>
+                          <button>Delete</button>
+                        </td>
+                      </tr>
+                    </>
+                  );
                 })}
               </tbody>
             </table>
@@ -408,9 +414,9 @@ function Employees() {
                   type="text"
                   placeholder=" Enter your Employee ID"
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empID"
-                  defaultValue={empFormData.ID}
-                  onChange={handleChange}
+                  name="ID"
+                  defaultValue={filterData[0].ID}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -423,9 +429,9 @@ function Employees() {
                   type="text"
                   placeholder=" Enter your Name"
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empName"
-                  defaultValue={empFormData.name}
-                  onChange={handleChange}
+                  name="name"
+                  defaultValue={filterData[0].name}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -438,9 +444,9 @@ function Employees() {
                   type="text"
                   placeholder=" Enter your email."
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empEmail"
-                  defaultValue={empFormData.email}
-                  onChange={handleChange}
+                  name="email"
+                  defaultValue={filterData[0].email}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -453,9 +459,9 @@ function Employees() {
                   type="text"
                   placeholder=" Enter your phone number."
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empPhone"
-                  defaultValue={empFormData.phone}
-                  onChange={handleChange}
+                  name="phone"
+                  defaultValue={filterData[0].phone}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -468,9 +474,9 @@ function Employees() {
                   type="date"
                   placeholder=" Enter your DOB"
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empDob"
-                  defaultValue={empFormData.DOB}
-                  onChange={handleChange}
+                  name="DOB"
+                  defaultValue={filterData[0].DOB}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -483,9 +489,9 @@ function Employees() {
                   type="text"
                   placeholder=" Enter Employee designation"
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empDesig"
-                  defaultValue={empFormData.address}
-                  onChange={handleChange}
+                  name="address"
+                  defaultValue={filterData[0].address}
+                  onChange={handleEditChange}
                 />
               </div>
               <div>
@@ -498,9 +504,9 @@ function Employees() {
                   type="number"
                   placeholder=" Enter your Salary."
                   className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2 "
-                  name="empSalary"
-                  defaultValue={empFormData.salary}
-                  onChange={handleChange}
+                  name="salary"
+                  defaultValue={filterData[0].salary}
+                  onChange={handleEditChange}
                 />
               </div>
               {/* <div>
@@ -544,7 +550,7 @@ function Employees() {
                 </button>
                 <button
                   className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
-                  onClick={handleEditSubmit}
+                  onClick={handleEditClick}
                 >
                   Update
                 </button>

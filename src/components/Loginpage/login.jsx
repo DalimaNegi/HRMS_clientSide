@@ -29,9 +29,8 @@ function Login() {
     //   formError.password = "Minimum 8 characters required.";
     // }
 
-    if (!loginData.conPassword) {
-      formError.conPassword =
-        "Confirmation of Password is required. It cannot be empty.";
+    if (!loginData.confirmPassword) {
+      formError.confirmPassword ="Confirmation of Password is required. It cannot be empty.";
     } 
     // else if (loginData.conPassword.length < 8) {
     //   formError.conPassword = "Minimum 8 characters required.";
@@ -110,10 +109,10 @@ function Login() {
                   type="password"
                   placeholder=" Enter Confirm Password"
                   onChange={handleChange}
-                  name="conPassword"
+                  name="confirmPassword"
                 />
                 {error && (
-                  <p className="text-red-500 mt-1">{error.conPassword}</p>
+                  <p className="text-red-500 mt-1">{error.confirmPassword}</p>
                 )}
               </div>
 
