@@ -26,11 +26,15 @@ function Employees() {
   let [error, setError] = useState({});
   let [openModal, setOpenModal] = useState(false);
   let [openEditModal, setOpenEditModal] = useState(false);
+  let [openCreateModal, setOpenCreateModal] = useState(false);
   let [empFormData, setEmpFormData] = useState([{}]);
 
   let [filterData, setFilterData] = useState([{}]);
 
   let [editData, setEditData] = useState({});
+  let [selectedEmployee, setSelectedEmployee] = useState(null);
+  let [accountData, setAccountData] = useState({});
+  let [accountError, setAccountError] = useState({});
 
   //let [isDelete, setIsDelete]
 
@@ -97,6 +101,80 @@ function Employees() {
         })
         .catch((err) => {
           let { message } = err.response.data;
+          alert(message);
+        });
+    }
+  };
+
+  let handleAccountChange = (e) => {
+    let { name, value } = e.target;
+    setAccountData({ ...accountData, [name]: value });
+  };
+
+  console.log("accountData",accountData);
+  
+
+  let validateAccountData = (data) => {
+    let accountErrors = {};
+
+    if (!data.email) {
+      accountErrors.email = "Email is required.";
+    }
+    if (!data.role) {
+      accountErrors.role = "Role is required.";
+    }
+    if (!data.password) {
+      accountErrors.password = "Password is required.";
+    }
+    if (!data.confirmPassword) {
+      accountErrors.confirmPassword = "Confirm password is required.";
+    }
+    if (
+      data.password &&
+      data.confirmPassword &&
+      data.password !== data.confirmPassword
+    ) {
+      accountErrors.confirmPassword = "Passwords must match.";
+    }
+
+    setAccountError(accountErrors);
+    return Object.keys(accountErrors).length;
+  };
+
+  let handleCreateAccountOpen = (employee) => {
+    setSelectedEmployee(employee);
+    setAccountData({
+      name: employee?.name || "",
+      email: employee?.email || "",
+      employeeId: employee?.ID || "",
+      role: "employee",
+      password: "",
+      confirmPassword: "",
+    });
+    setAccountError({});
+    setOpenCreateModal(true);
+  };
+
+  let handleCreateAccountSubmit = () => {
+    let validate = validateAccountData(accountData);
+
+    if (validate === 0) {
+      axios
+        .post(`${baseURL}/signup`, accountData)
+        .then((res) => {
+          let { success, message } = res.data;
+
+          if (success) {
+            alert(message);
+            setOpenCreateModal(false);
+            setAccountData({});
+            setSelectedEmployee(null);
+            setAccountError({});
+          }
+        })
+        .catch((err) => {
+          let message =
+            err?.response?.data?.message || "Unable to create account.";
           alert(message);
         });
     }
@@ -175,12 +253,10 @@ function Employees() {
           <CardTitle>Employees</CardTitle>
           <CardDescription>Card Description</CardDescription>
           <CardAction>
-            <Dialog open={openModal} onOpenChange={() => setOpenModal(true)}>
-              <DialogTrigger className="border-2 border-blue-500 rounded-2xl p-2 bg-blue-300">
+            <Dialog open={openModal} onOpenChange={(open) => setOpenModal(open)}>
+              <DialogTrigger className="border-2 border-green-600 rounded-2xl p-2 bg-green-300">
                 Add Employee
               </DialogTrigger>
-            </Dialog>
-            <Dialog open={openModal}>
               <DialogContent className="p-6 h-150 scroll-smooth overflow-auto scrollbar-gutter-auto scrollbar-thumb-sky-200 scrollbar-track-sky-100">
                 <DialogHeader>
                   <DialogTitle className="mb-4">
@@ -395,29 +471,37 @@ function Employees() {
                   </td> */}
                         {/* <td class="border border-gray-300 ...">{empFormData.empDept}</td> */}
                         <td class="border border-gray-300 ...">
-                          <button>
-                            <Dialog
-                              open={openEditModal}
-                              onOpenChange={() => {
-                                setOpenEditModal(true);
-                                setFilterData(
-                                  empFormData.filter(
-                                    (data) => data._id === item._id,
-                                  ),
-                                );
-                              }}
+                          <div className="flex justify-center gap-1.5">
+                            <button>
+                              <Dialog
+                                open={openEditModal}
+                                onOpenChange={() => {
+                                  setOpenEditModal(true);
+                                  setFilterData(
+                                    empFormData.filter(
+                                      (data) => data._id === item._id,
+                                    ),
+                                  );
+                                }}
+                              >
+                                <DialogTrigger className="border border-blue-600 rounded-md p-2 bg-blue-300 m-1 pl-5 pr-5">
+                                  Edit
+                                </DialogTrigger>
+                              </Dialog>
+                            </button>
+                            <button
+                              className="border border-red-600 rounded-md p-2 bg-red-300 m-1 pl-5 pr-5"
+                              onClick={() => handleDelete(item._id)}
                             >
-                              <DialogTrigger className="border-1 border-blue-600 rounded-md p-2 bg-blue-200">
-                                Edit
-                              </DialogTrigger>
-                            </Dialog>
-                          </button>
-                          <button
-                            className="border-1 border-red-600 rounded-md p-2 bg-red-200"
-                            onClick={() => handleDelete(item._id)}
-                          >
-                            Delete
-                          </button>
+                              Delete
+                            </button>
+                            <button
+                              className="border border-green-600 rounded-md p-2 bg-green-300 m-1 pl-5 pr-5"
+                              onClick={() => handleCreateAccountOpen(item)}
+                            >
+                              Create Account
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     </>
@@ -432,8 +516,121 @@ function Employees() {
         </CardFooter>
       </Card>
 
+      <Dialog open={openCreateModal} onOpenChange={setOpenCreateModal}>
+        <DialogContent className="p-6 h-150 scroll-smooth overflow-auto scrollbar-gutter-auto scrollbar-thumb-sky-200 scrollbar-track-sky-100">
+          <DialogHeader>
+            <DialogTitle className="mb-4">Create an account for this Employee 🍺 </DialogTitle>
+            <DialogDescription>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Name
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="text"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2"
+                  name="name"
+                  value={accountData.name || ""}
+                  disabled
+                  onChange={handleAccountChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Employee Email
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="email"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2"
+                  name="email"
+                  value={accountData.email || ""}
+                  onChange={handleAccountChange}
+                />
+                {accountError && (
+                  <p className="text-red-500 mt-1">{accountError.email}</p>
+                )}
+              </div>
+              <div>
+                <label className="font-semibold text-black ">Role</label>
+              </div>
+              <div className="mb-2">
+                <select
+                  className="pl-2 w-full h-10 border-2 border-black rounded-md mt-2 bg-white"
+                  name="role"
+                  value={accountData.role || ""}
+                  onChange={handleAccountChange}
+                >
+                  {/* <option value="">Select role</option> */}
+                  <option value="employee" selected>Employee</option>
+                  {/* <option value="manager">Manager</option> */}
+                  <option value="admin" disabled>Admin</option> 
+                </select>
+                {accountError && (
+                  <p className="text-red-500 mt-1">{accountError.role}</p>
+                )}
+              </div>
+              <div>
+                <label className="font-semibold text-black ">Password</label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="password"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2"
+                  name="password"
+                  value={accountData.password || ""}
+                  onChange={handleAccountChange}
+                />
+                {accountError && (
+                  <p className="text-red-500 mt-1">{accountError.password}</p>
+                )}
+              </div>
+              <div>
+                <label className="font-semibold text-black ">
+                  Confirm Password
+                </label>
+              </div>
+              <div className="mb-2">
+                <input
+                  type="password"
+                  className="pl-2 w-full h-8 border-2 border-black rounded-md mt-2"
+                  name="confirmPassword"
+                  value={accountData.confirmPassword || ""}
+                  onChange={handleAccountChange}
+                />
+                {accountError && (
+                  <p className="text-red-500 mt-1">
+                    {accountError.confirmPassword}
+                  </p>
+                )}
+              </div>
+              <div className="flex justify-end gap-3 mt-5">
+                <button
+                  className="px-5 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
+                  onClick={() => {
+                    setOpenCreateModal(false);
+                    setSelectedEmployee(null);
+                    setAccountError({});
+                  }}
+                >
+                  Close
+                </button>
+                <button
+                  className="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
+                  onClick={handleCreateAccountSubmit}
+                >
+                  Create Account
+                </button>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Employee Record Modal */}
-      <Dialog open={openEditModal}>
+      <Dialog open={openEditModal} onOpenChange={setOpenEditModal}>
         <DialogContent className="p-6 h-150 scroll-smooth overflow-auto scrollbar-gutter-auto scrollbar-thumb-sky-200 scrollbar-track-sky-100">
           <DialogHeader>
             <DialogTitle className="mb-4">

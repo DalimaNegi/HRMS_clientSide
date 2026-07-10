@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 function RequireAuth({children}){      //props
     let token = localStorage.getItem("auth_token");
 
-    console.log(token)
+    //console.log(token)
     
     if(!token){
         return(

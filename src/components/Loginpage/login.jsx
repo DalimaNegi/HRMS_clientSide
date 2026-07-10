@@ -44,9 +44,13 @@ function Login() {
       axios                                                    //promise-based http client
         .post(`${baseURL}/login`, loginData)
         .then((res) => {
-          let { success, message, token } = res.data;
+          let { success, message, token, role, email } = res.data;
           console.log(res.data)
-          if (success) {
+          if(role === "employee"){
+            alert(message);
+            localStorage.setItem("auth_token", token);
+            navigate("/employeepanel", {state: email});
+          }else{
             alert(message);
             localStorage.setItem("auth_token", token);
             navigate("/panel");
